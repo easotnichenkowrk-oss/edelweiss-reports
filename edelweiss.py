@@ -218,7 +218,7 @@ if regime == 'Посмотреть отчёт':
             st.dataframe(report, use_container_width=True, height=600)
             
             if "filename_total" not in st.session_state:
-                st.session_state.filename_total = "report.xlsx"
+                st.session_state.filename_total = filename_total
 
             if len (selected_shop) > 3:
                 # текстовое поле для ввода имени файла
@@ -232,7 +232,7 @@ if regime == 'Посмотреть отчёт':
             if st.download_button(
                 label="Скачать",
                 data=buffer,
-                file_name=f'{filename_total}.xlsx',
+                file_name=f'{st.session_state.filename_total}.xlsx',
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 icon=":material/download:",
             ):
@@ -259,7 +259,7 @@ if regime == 'Посмотреть отчёт':
             tmp.reset_index(drop=True, inplace=True)
             st.dataframe (tmp)
             if "filename" not in st.session_state:
-                st.session_state.filename = "report.xlsx"
+                st.session_state.filename = filename
         
             # текстовое поле для ввода имени файла
             if len (selected_shop) > 3:
@@ -274,7 +274,7 @@ if regime == 'Посмотреть отчёт':
             if st.download_button(
                 label="Скачать",
                 data=buffer,
-                file_name=f'{filename}.xlsx',
+                file_name=f'{st.session_state.filename}.xlsx',
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 icon=":material/download:",
             ):
