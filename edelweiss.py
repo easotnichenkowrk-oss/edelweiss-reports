@@ -247,7 +247,7 @@ if regime == 'Посмотреть отчёт':
                 'end_balance_sum': 'Конечный остаток (сумма)',
             })
 
-            st.dataframe (tmp)
+            st.dataframe (tmp.reset_index(drop=True, inplace=True))
 
             buffer = io.BytesIO()
             tmp.to_excel(buffer, index=False)
