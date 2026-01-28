@@ -117,7 +117,7 @@ if regime == 'Добавить данные':
 
 
 if regime == 'Посмотреть отчёт':
-    goods_data = st.file_uploader ('Загрузите общую таблицу')
+    goods_data = st.file_uploader ('Загрузите goods_data')
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     df = pd.read_excel("goods_data.xlsx")
     shop_names = list(df['shop'].unique())
@@ -226,7 +226,7 @@ if regime == 'Посмотреть отчёт':
             if st.download_button(
                 label="Скачать",
                 data=buffer,
-                file_name=filename_total,
+                file_name=f'{filename_total}.xlsx',
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 icon=":material/download:",
             ):
@@ -261,7 +261,7 @@ if regime == 'Посмотреть отчёт':
             if st.download_button(
                 label="Скачать",
                 data=buffer,
-                file_name=filename,
+                file_name=f'{filename}.xlsx',
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 icon=":material/download:",
             ):
