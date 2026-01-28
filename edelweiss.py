@@ -233,7 +233,8 @@ if regime == 'Посмотреть отчёт':
                         end_balance_sum=('end_balance_sum', 'sum'),
                     )
                 )
-
+                n = (filtered['date_end'].max() - filtered['date_begin'].min()).days
+                report ['Оборачиваемость'] = round(report['end_balance_num'] * n /report['sold_num'])
                 report = report.rename(columns={
                     'good': 'Товар',
                     'balance_num': 'Начальный остаток (кол-во)',
@@ -250,7 +251,8 @@ if regime == 'Посмотреть отчёт':
 
                 if len(filename_total) > 100:
                     filename_total = f'Общий отчёт {real_start}-{real_end} {selected_shop[:3]} итд.xlsx'
-                if all_shops: filename_total = f'Отчёт {real_start}-{real_end} все магазины.xlsx'
+                if all_shops: filename_total = f'Общий отчёт {real_start}-{real_end} все магазины.xlsx'
+
 
                 buffer = io.BytesIO()
                 report.to_excel(buffer, index=False)
@@ -269,6 +271,7 @@ if regime == 'Посмотреть отчёт':
                 
                 tmp = tmp.sort_values('shop')
                 filename = f'Отчёт {real_start}-{real_end} {selected_shop}.xlsx'
+                tmp ['Оборачиваемость'] = round(tmp['end_balance_num'] * n /tmp['sold_num'])
                 tmp = tmp.rename(columns={
                     'good': 'Товар',
                     'shop': 'Магазин',
