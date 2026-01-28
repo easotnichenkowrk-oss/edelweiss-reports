@@ -117,7 +117,7 @@ if regime == 'Добавить данные':
 
 
 if regime == 'Посмотреть отчёт':
-    goods_data = st.file_uploader ('Загрузите goods_data')
+    goods_data = st.file_uploader ('Загрузите общую таблицу')
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     df = pd.read_excel("goods_data.xlsx")
     shop_names = list(df['shop'].unique())
@@ -216,18 +216,9 @@ if regime == 'Посмотреть отчёт':
             })
             filename_total = f'Общий отчёт {real_start}-{real_end} {selected_shop}.xlsx'
             st.dataframe(report, use_container_width=True, height=600)
-            
-            # Инициализация один раз
-            if "filename_total" not in st.session_state:
-                st.session_state.filename_total = "Общий отчет"  # начальное значение
-            
-            # Текстовое поле только если выбрано >3 магазинов
-            if len(selected_shop) > 3:
-                st.text_input(
-                    "Введите название для сохранения",
-                    value=st.session_state.filename_total,
-                    key="filename_total")
-            else: st.session_state.filename_total = filename_total
+
+            if len(filename_total) > 100:
+                filename_total = f'Общий отчёт {real_start}-{real_end} {selected_shop[:3]}.xlsx'
 
             buffer = io.BytesIO()
             report.to_excel(buffer, index=False)
@@ -235,7 +226,7 @@ if regime == 'Посмотреть отчёт':
             if st.download_button(
                 label="Скачать",
                 data=buffer,
-                file_name=f'{st.session_state.filename_total}.xlsx',
+                file_name=filename_total,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 icon=":material/download:",
             ):
@@ -261,25 +252,18 @@ if regime == 'Посмотреть отчёт':
             
             tmp.reset_index(drop=True, inplace=True)
             st.dataframe (tmp)
-            if "filename" not in st.session_state:
-                st.session_state.filename_total = "Отчет"  # начальное значение
-            
-            # Текстовое поле только если выбрано >3 магазинов
-            if len(selected_shop) > 3:
-                st.text_input(
-                    "Введите название для сохранения",
-                    value=st.session_state.filename,
-                    key="filename")
-            else: st.session_state.filename = filename
-            
+
+            if len(filename) > 100:
+                filename = f'Отчёт {real_start}-{real_end} {selected_shop[:3]}.xlsx'
             buffer = io.BytesIO()
             tmp.to_excel(buffer, index=False)
             buffer.seek(0)
-            
+            if len (selected_shop) > 3:
+                filename = st.textinput ('Ввведите название для сохранения')
             if st.download_button(
                 label="Скачать",
                 data=buffer,
-                file_name=f'{st.session_state.filename}.xlsx',
+                file_name=filename,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 icon=":material/download:",
             ):
