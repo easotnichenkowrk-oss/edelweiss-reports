@@ -218,7 +218,7 @@ if regime == 'Посмотреть отчёт':
             st.dataframe(report, use_container_width=True, height=600)
             
             if "filename_total" not in st.session_state:
-                st.session_state.filename = "report.xlsx"
+                st.session_state.filename_total = "report.xlsx"
 
             if len (selected_shop) > 3:
                 # текстовое поле для ввода имени файла
