@@ -123,7 +123,16 @@ if regime == 'Посмотреть отчёт':
         df = pd.read_excel(goods_data)
         shop_names = list(df['shop'].unique())
         with col1:
-            selected_shop = st.multiselect('Выберите магазин', shop_names)
+            # Checkbox "Все"
+            all_shops = st.checkbox("Все магазины", value=True)
+            
+            if all_shops:
+                # Если выбрано "Все", выбираем весь список
+                selected_shop = shop_names
+            else:
+                # Если "Все" не выбрано, пользователь может выбирать вручную
+                selected_shop = st.multiselect("Выберите магазины", options=shop_names)
+
 
         col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
         with col1:
@@ -157,8 +166,14 @@ if regime == 'Посмотреть отчёт':
                 real_start = filtered['date_begin'].min().strftime("%d.%m.%Y")
                 real_end   = filtered['date_end'].max().strftime("%d.%m.%Y")
 
+                if all_shops: 
+                    shop_name = 'все магазины'
+                    text = 'во'
+                else: 
+                    shop_name = ", ".join(map(str, shop_name))
+                    'в'
                 st.subheader(
-                    f'Общий отчёт о движении товаров в {", ".join(map(str, shop_name))} '
+                    f'Общий отчёт о движении товаров {text} {shop_name} '
                     f'за {real_start} – {real_end}'
                 )
 
@@ -258,8 +273,7 @@ if regime == 'Посмотреть отчёт':
                 buffer = io.BytesIO()
                 tmp.to_excel(buffer, index=False)
                 buffer.seek(0)
-                if len (selected_shop) > 3:
-                    filename = st.textinput ('Ввведите название для сохранения')
+
                 if st.download_button(
                     label="Скачать",
                     data=buffer,
