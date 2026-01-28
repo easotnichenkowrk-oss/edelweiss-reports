@@ -1,6 +1,4 @@
 import streamlit as st
-import pickle as pkl
-from pathlib import Path
 import pandas as pd
 import datetime
 from datetime import date, datetime
