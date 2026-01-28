@@ -76,7 +76,23 @@ if regime == 'Добавить данные':
 
             colnames = ['good', 'shop', 'date_begin', 'date_end', 'balance_num', 'balance_sum', 'sold_num', 'sold_sum', 'supply_num', 'supply_sum', 'end_balance_num', 'end_balance_sum']
             numeric_cols = ['balance_num', 'balance_sum', 'sold_num', 'sold_sum', 'supply_num', 'supply_sum', 'end_balance_num', 'end_balance_sum']
-            st.dataframe(table)
+            table_renamed = table.rename(columns={
+                    'good': 'Товар',
+                    'shop': 'Магазин',
+                    'balance_num': 'Начальный остаток (кол-во)',
+                    'balance_sum': 'Начальный остаток (сумма)',
+                    'sold_num': 'Реализация (кол-во)',
+                    'sold_sum': 'Реализация (сумма)',
+                    'sold_advance_num': 'Реализация авансом (кол-во)',
+                    'sold_advance_sum': 'Реализация авансом (сумма)',
+                    'write_off_num': 'Списано (кол-во)',
+                    'write_off_sum': 'Списано(сумма)',
+                    'supply_num': 'Поступление (кол-во)',
+                    'supply_sum': 'Поступление (сумма)',
+                    'end_balance_num': 'Конечный остаток (кол-во)',
+                    'end_balance_sum': 'Конечный остаток (сумма)',
+                })
+            st.dataframe(table_renamed)
             if goods_data is not None:
                 df = goods_data
                 if date_start in df['date_begin'].values:
@@ -117,7 +133,7 @@ if regime == 'Добавить данные':
 
 
 if regime == 'Посмотреть отчёт':
-    goods_data = st.file_uploader ('Загрузите общую таблицу')
+    goods_data = st.file_uploader ('Загрузите  goods_data')
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     if goods_data is not None:
         df = pd.read_excel(goods_data)
