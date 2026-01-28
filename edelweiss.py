@@ -218,13 +218,14 @@ if regime == 'Посмотреть отчёт':
             st.dataframe(report, use_container_width=True, height=600)
             
             if "filename_total" not in st.session_state:
-                st.session_state.filename_total = filename_total
+                st.session_state.filename_total = 'Общий отчет'
 
             if len (selected_shop) > 3:
                 # текстовое поле для ввода имени файла
                 st.session_state.filename_total = st.text_input(
                     "Введите название для сохранения",
                     value=st.session_state.filename_total)
+            else: st.session_state.filename = filename_total
 
             buffer = io.BytesIO()
             report.to_excel(buffer, index=False)
@@ -259,13 +260,14 @@ if regime == 'Посмотреть отчёт':
             tmp.reset_index(drop=True, inplace=True)
             st.dataframe (tmp)
             if "filename" not in st.session_state:
-                st.session_state.filename = filename
+                st.session_state.filename = 'Отчет'
         
             # текстовое поле для ввода имени файла
             if len (selected_shop) > 3:
                 st.session_state.filename = st.text_input(
                     "Введите название для сохранения",
                     value=st.session_state.filename)
+            else: st.session_state.filename = filename
             
             buffer = io.BytesIO()
             tmp.to_excel(buffer, index=False)
