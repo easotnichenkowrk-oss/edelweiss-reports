@@ -116,151 +116,170 @@ if regime == 'Добавить данные':
 
 
 
+if regime == 'Посмотреть отчёт':
+    goods_data = st.file_uploader ('Загрузите общую таблицу')
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    df = pd.read_excel("goods_data.xlsx")
+    shop_names = list(df['shop'].unique())
+    with col1:
+        selected_shop = st.multiselect('Выберите магазин', shop_names)
+
+    col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
+    with col1:
+        min_date = datetime.strptime("01.01.2000", "%d.%m.%Y").date()
+        max_date = date.today()
+    
+        date_start = st.date_input ('С:', format = 'DD/MM/YYYY',min_value=min_date)
+        date_end = st.date_input ('По:', format = 'DD/MM/YYYY', max_value=max_date)
+    shop_name = selected_shop
+    date_start_str = date_start.strftime("%d.%m.%Y")
+    date_end_str   = date_end.strftime("%d.%m.%Y")
+
+
     if st.button('Просмотр'):
-            st.divider()
+        st.divider()
 
-            # Приводим даты к datetime (Excel может хранить их в разных форматах)
-            df['date_begin'] = pd.to_datetime(df['date_begin'], errors='coerce', dayfirst=True)
-            df['date_end']   = pd.to_datetime(df['date_end'], errors='coerce', dayfirst=True)
+        # Приводим даты к datetime (Excel может хранить их в разных форматах)
+        df['date_begin'] = pd.to_datetime(df['date_begin'], errors='coerce', dayfirst=True)
+        df['date_end']   = pd.to_datetime(df['date_end'], errors='coerce', dayfirst=True)
 
-            # Парсим введённые пользователем даты
-            date_start_dt = pd.to_datetime(date_start, errors='coerce', dayfirst=True)
-            date_end_dt   = pd.to_datetime(date_end, errors='coerce', dayfirst=True)
+        # Парсим введённые пользователем даты
+        date_start_dt = pd.to_datetime(date_start, errors='coerce', dayfirst=True)
+        date_end_dt   = pd.to_datetime(date_end, errors='coerce', dayfirst=True)
 
-            # Фильтрация по выбранным магазинам и пересечению периодов
-            filtered = df[
-                (df['shop'].isin(selected_shop)) &
-                (df['date_end'] >= date_start_dt) &
-                (df['date_begin'] <= date_end_dt)
-            ]
+        # Фильтрация по выбранным магазинам и пересечению периодов
+        filtered = df[
+            (df['shop'].isin(selected_shop)) &
+            (df['date_end'] >= date_start_dt) &
+            (df['date_begin'] <= date_end_dt)
+        ]
 
-            if filtered.empty:
-                st.warning("Нет данных за выбранный период")
-            else:
-                # Фактический период в фильтрованных данных
-                real_start = filtered['date_begin'].min().strftime("%d.%m.%Y")
-                real_end   = filtered['date_end'].max().strftime("%d.%m.%Y")
+        if filtered.empty:
+            st.warning("Нет данных за выбранный период")
+        else:
+            # Фактический период в фильтрованных данных
+            real_start = filtered['date_begin'].min().strftime("%d.%m.%Y")
+            real_end   = filtered['date_end'].max().strftime("%d.%m.%Y")
 
-                st.subheader(
-                    f'Общий отчёт о движении товаров в {", ".join(map(str, selected_shop))} '
-                    f'за {real_start} – {real_end}'
+            st.subheader(
+                f'Общий отчёт о движении товаров в {", ".join(map(str, selected_shop))} '
+                f'за {real_start} – {real_end}'
+            )
+
+            # Сортируем для корректной агрегации
+            filtered = filtered.sort_values(['good', 'date_begin'])
+
+            # Сначала группируем по товару и магазину
+            tmp = (
+                filtered
+                .groupby(['good', 'shop'], as_index=False)
+                .agg(
+                    balance_num=('balance_num', 'first'),
+                    balance_sum=('balance_sum', 'first'),
+
+                    sold_num=('sold_num', 'sum'),
+                    sold_sum=('sold_sum', 'sum'),
+
+                    supply_num=('supply_num', 'sum'),
+                    supply_sum=('supply_sum', 'sum'),
+
+                    end_balance_num=('end_balance_num', 'last'),
+                    end_balance_sum=('end_balance_sum', 'last'),
                 )
+            )
 
-                # Сортируем для корректной агрегации
-                filtered = filtered.sort_values(['good', 'date_begin'])
+            # Затем агрегируем по товару
+            report = (
+                tmp
+                .groupby('good', as_index=False)
+                .agg(
+                    balance_num=('balance_num', 'sum'),
+                    balance_sum=('balance_sum', 'sum'),
 
-                # Сначала группируем по товару и магазину
-                tmp = (
-                    filtered
-                    .groupby(['good', 'shop'], as_index=False)
-                    .agg(
-                        balance_num=('balance_num', 'first'),
-                        balance_sum=('balance_sum', 'first'),
+                    sold_num=('sold_num', 'sum'),
+                    sold_sum=('sold_sum', 'sum'),
 
-                        sold_num=('sold_num', 'sum'),
-                        sold_sum=('sold_sum', 'sum'),
+                    supply_num=('supply_num', 'sum'),
+                    supply_sum=('supply_sum', 'sum'),
 
-                        supply_num=('supply_num', 'sum'),
-                        supply_sum=('supply_sum', 'sum'),
-
-                        end_balance_num=('end_balance_num', 'last'),
-                        end_balance_sum=('end_balance_sum', 'last'),
-                    )
+                    end_balance_num=('end_balance_num', 'sum'),
+                    end_balance_sum=('end_balance_sum', 'sum'),
                 )
+            )
 
-                # Затем агрегируем по товару
-                report = (
-                    tmp
-                    .groupby('good', as_index=False)
-                    .agg(
-                        balance_num=('balance_num', 'sum'),
-                        balance_sum=('balance_sum', 'sum'),
+            # Переименовываем колонки для финального отчёта
+            report = report.rename(columns={
+                'good': 'Товар',
+                'balance_num': 'Начальный остаток (кол-во)',
+                'balance_sum': 'Начальный остаток (сумма)',
+                'sold_num': 'Реализация (кол-во)',
+                'sold_sum': 'Реализация (сумма)',
+                'supply_num': 'Поступление (кол-во)',
+                'supply_sum': 'Поступление (сумма)',
+                'end_balance_num': 'Конечный остаток (кол-во)',
+                'end_balance_sum': 'Конечный остаток (сумма)',
+            })
 
-                        sold_num=('sold_num', 'sum'),
-                        sold_sum=('sold_sum', 'sum'),
+            # Формируем имя файла
+            filename_total = f'Общий отчёт {real_start}-{real_end} {"_".join(selected_shop)}.xlsx'
+            if len(filename_total) > 100:
+                filename_total = f'Общий отчёт {real_start}-{real_end} {selected_shop[0][:3]}_итд.xlsx'
 
-                        supply_num=('supply_num', 'sum'),
-                        supply_sum=('supply_sum', 'sum'),
+            # Отображаем итоговый отчёт
+            st.dataframe(report, use_container_width=True, height=600)
 
-                        end_balance_num=('end_balance_num', 'sum'),
-                        end_balance_sum=('end_balance_sum', 'sum'),
-                    )
-                )
+            # Создаём Excel в памяти
+            buffer = io.BytesIO()
+            report.to_excel(buffer, index=False)
+            buffer.seek(0)
 
-                # Переименовываем колонки для финального отчёта
-                report = report.rename(columns={
-                    'good': 'Товар',
-                    'balance_num': 'Начальный остаток (кол-во)',
-                    'balance_sum': 'Начальный остаток (сумма)',
-                    'sold_num': 'Реализация (кол-во)',
-                    'sold_sum': 'Реализация (сумма)',
-                    'supply_num': 'Поступление (кол-во)',
-                    'supply_sum': 'Поступление (сумма)',
-                    'end_balance_num': 'Конечный остаток (кол-во)',
-                    'end_balance_sum': 'Конечный остаток (сумма)',
-                })
+            # Кнопка скачивания
+            if st.download_button(
+                label="Скачать",
+                data=buffer,
+                file_name=filename_total,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                icon=":material/download:",
+            ):
+                st.success('✅ Отчет сохранен')
 
-                # Формируем имя файла
-                filename_total = f'Общий отчёт {real_start}-{real_end} {"_".join(selected_shop)}.xlsx'
-                if len(filename_total) > 100:
-                    filename_total = f'Общий отчёт {real_start}-{real_end} {selected_shop[0][:3]}_итд.xlsx'
+            # Отдельный отчёт по магазинам
+            tmp = tmp.sort_values('shop')
+            tmp = tmp.rename(columns={
+                'good': 'Товар',
+                'shop': 'Магазин',
+                'balance_num': 'Начальный остаток (кол-во)',
+                'balance_sum': 'Начальный остаток (сумма)',
+                'sold_num': 'Реализация (кол-во)',
+                'sold_sum': 'Реализация (сумма)',
+                'supply_num': 'Поступление (кол-во)',
+                'supply_sum': 'Поступление (сумма)',
+                'end_balance_num': 'Конечный остаток (кол-во)',
+                'end_balance_sum': 'Конечный остаток (сумма)',
+            })
+            tmp.reset_index(drop=True, inplace=True)
 
-                # Отображаем итоговый отчёт
-                st.dataframe(report, use_container_width=True, height=600)
+            st.subheader(f'Отчёт о движении товаров за {real_start} – {real_end}')
+            st.dataframe(tmp)
 
-                # Создаём Excel в памяти
-                buffer = io.BytesIO()
-                report.to_excel(buffer, index=False)
-                buffer.seek(0)
+            # Кнопка скачивания с возможностью задать название
+            if "filename_tmp" not in st.session_state:
+                st.session_state.filename_tmp = f'Отчёт {real_start}-{real_end}'
 
-                # Кнопка скачивания
-                if st.download_button(
-                    label="Скачать",
-                    data=buffer,
-                    file_name=filename_total,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    icon=":material/download:",
-                ):
-                    st.success('✅ Отчет сохранен')
+            st.session_state.filename_tmp = st.text_input(
+                "Введите название для сохранения",
+                value=st.session_state.filename_tmp
+            )
 
-                # Отдельный отчёт по магазинам
-                tmp = tmp.sort_values('shop')
-                tmp = tmp.rename(columns={
-                    'good': 'Товар',
-                    'shop': 'Магазин',
-                    'balance_num': 'Начальный остаток (кол-во)',
-                    'balance_sum': 'Начальный остаток (сумма)',
-                    'sold_num': 'Реализация (кол-во)',
-                    'sold_sum': 'Реализация (сумма)',
-                    'supply_num': 'Поступление (кол-во)',
-                    'supply_sum': 'Поступление (сумма)',
-                    'end_balance_num': 'Конечный остаток (кол-во)',
-                    'end_balance_sum': 'Конечный остаток (сумма)',
-                })
-                tmp.reset_index(drop=True, inplace=True)
+            buffer_tmp = io.BytesIO()
+            tmp.to_excel(buffer_tmp, index=False)
+            buffer_tmp.seek(0)
 
-                st.subheader(f'Отчёт о движении товаров за {real_start} – {real_end}')
-                st.dataframe(tmp)
-
-                # Кнопка скачивания с возможностью задать название
-                if "filename_tmp" not in st.session_state:
-                    st.session_state.filename_tmp = f'Отчёт {real_start}-{real_end}'
-
-                st.session_state.filename_tmp = st.text_input(
-                    "Введите название для сохранения",
-                    value=st.session_state.filename_tmp
-                )
-
-                buffer_tmp = io.BytesIO()
-                tmp.to_excel(buffer_tmp, index=False)
-                buffer_tmp.seek(0)
-
-                if st.download_button(
-                    label="Скачать",
-                    data=buffer_tmp,
-                    file_name=st.session_state.filename_tmp + ".xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    icon=":material/download:",
-                ):
-                    st.success('✅ Отчет сохранен')
-
+            if st.download_button(
+                label="Скачать",
+                data=buffer_tmp,
+                file_name=st.session_state.filename_tmp + ".xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                icon=":material/download:",
+            ):
+                st.success('✅ Отчет сохранен')
