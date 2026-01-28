@@ -218,7 +218,7 @@ if regime == 'Посмотреть отчёт':
             st.dataframe(report, use_container_width=True, height=600)
             
             if len (selected_shop) > 3:
-                filename_total = st.textinput ('Ввведите название для сохранения')
+                filename_total = st.text_input ('Ввведите название для сохранения')
 
             buffer = io.BytesIO()
             report.to_excel(buffer, index=False)
@@ -257,7 +257,7 @@ if regime == 'Посмотреть отчёт':
             tmp.to_excel(buffer, index=False)
             buffer.seek(0)
             if len (selected_shop) > 3:
-                filename = st.textinput ('Ввведите название для сохранения')
+                filename = st.text_input ('Ввведите название для сохранения')
             if st.download_button(
                 label="Скачать",
                 data=buffer,
