@@ -214,8 +214,11 @@ if regime == 'Посмотреть отчёт':
                 'end_balance_num': 'Конечный остаток (кол-во)',
                 'end_balance_sum': 'Конечный остаток (сумма)',
             })
-            filename = f'Общий отчёт {real_start}-{real_end} {selected_shop}.xlsx'
+            filename_total = f'Общий отчёт {real_start}-{real_end} {selected_shop}.xlsx'
             st.dataframe(report, use_container_width=True, height=600)
+            
+            if len (selected_shop) > 3:
+                filename_total = st.textinput ('Ввведите название для сохранения')
 
             buffer = io.BytesIO()
             report.to_excel(buffer, index=False)
@@ -223,7 +226,7 @@ if regime == 'Посмотреть отчёт':
             if st.download_button(
                 label="Скачать",
                 data=buffer,
-                file_name=filename,
+                file_name=filename_total,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 icon=":material/download:",
             ):
@@ -253,6 +256,8 @@ if regime == 'Посмотреть отчёт':
             buffer = io.BytesIO()
             tmp.to_excel(buffer, index=False)
             buffer.seek(0)
+            if len (selected_shop) > 3:
+                filename = st.textinput ('Ввведите название для сохранения')
             if st.download_button(
                 label="Скачать",
                 data=buffer,
