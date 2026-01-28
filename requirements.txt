@@ -1,0 +1,6 @@
+streamlit
+pandas
+datetime
+re
+os
+io
