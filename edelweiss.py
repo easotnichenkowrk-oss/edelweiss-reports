@@ -234,6 +234,7 @@ if regime == 'Посмотреть отчёт':
 
                 if len(filename_total) > 100:
                     filename_total = f'Общий отчёт {real_start}-{real_end} {selected_shop[:3]} итд.xlsx'
+                if all_shops: filename_total = f'Отчёт {real_start}-{real_end} все магазины.xlsx'
 
                 buffer = io.BytesIO()
                 report.to_excel(buffer, index=False)
@@ -270,6 +271,7 @@ if regime == 'Посмотреть отчёт':
 
                 if len(filename) > 100:
                     filename = f'Отчёт {real_start}-{real_end} {selected_shop[:3]} итд.xlsx'
+                if all_shops: filename = f'Отчёт {real_start}-{real_end} все магазины.xlsx'
                 buffer = io.BytesIO()
                 tmp.to_excel(buffer, index=False)
                 buffer.seek(0)
