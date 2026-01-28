@@ -116,7 +116,7 @@ if regime == 'Добавить данные':
 
 
 
-        if st.button('Просмотр'):
+    if st.button('Просмотр'):
             st.divider()
 
             # Приводим даты к datetime (Excel может хранить их в разных форматах)
