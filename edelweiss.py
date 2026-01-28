@@ -9,15 +9,14 @@ import io
 st.set_page_config(
     page_title="Движение товара",
     layout="wide")
-def save_goods(new_rows, filename="goods_data.xlsx"):
+def save_goods(new_rows, old_df):
     # если файл уже существует — читаем его
-    if os.path.exists(filename):
-        old_df = pd.read_excel(filename)
+    if old_df is not None:
         final_df = pd.concat([old_df, new_rows], ignore_index=True)
     else:
         final_df = new_rows
 
-    final_df.to_excel(filename, index=False)
+    return final_df
 
 def normalize_number(x):
     if pd.isna(x):
@@ -46,8 +45,9 @@ regime = st.segmented_control('', options=['Добавить данные', 'П�
 
 
 if regime == 'Добавить данные':
+    goods = st.file_uploader ('Загрузите goods_data')
     workfile = st.file_uploader ('Загрузите файл')
-
+    if goods: goods_data = pd.read_excel(goods)
     if workfile is not None:
         try:
             table = pd.read_excel (workfile)
@@ -77,26 +77,35 @@ if regime == 'Добавить данные':
             colnames = ['good', 'shop', 'date_begin', 'date_end', 'balance_num', 'balance_sum', 'sold_num', 'sold_sum', 'supply_num', 'supply_sum', 'end_balance_num', 'end_balance_sum']
             numeric_cols = ['balance_num', 'balance_sum', 'sold_num', 'sold_sum', 'supply_num', 'supply_sum', 'end_balance_num', 'end_balance_sum']
             st.dataframe(table)
-            if os.path.exists("goods_data.xlsx"):
-                df = pd.read_excel("goods_data.xlsx")
+            if goods_data is not None:
+                df = goods_data
                 if date_start in df['date_begin'].values:
                     st.error ('Внимание! Кажется, отчёты за эти даты уже добавлены. Пожалуйста, проверьте файл')
 
-            if st.button('Сохранить'):
-                result = table.copy()
+
+            result = table.copy()
                 # нормализуем числа
-                for col in numeric_cols:
+            for col in numeric_cols:
                     result[col] = result[col].apply(normalize_number)
 
-                result['date_begin'] = date_start
-                result['date_end']   = date_end
+            result['date_begin'] = date_start
+            result['date_end']   = date_end
 
                 # приводим к правильному порядку колонок
-                final_rows = result[colnames]
-
-                # сохраняем (добавляя к Excel)
-                save_goods(final_rows)
-
+            final_rows = result[colnames]
+            
+            filename = "goods_data.xlsx"
+            table = save_goods(final_rows, goods_data)
+            buffer = io.BytesIO()
+            table.to_excel(buffer, index=False)
+            buffer.seek(0)
+            if st.download_button(
+                label="Скачать",
+                data=buffer,
+                file_name=filename,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                icon=":material/download:",
+            ):
                 st.success('✅ Данные успешно добавлены в таблицу')
 
         except Exception as e: 
@@ -108,6 +117,7 @@ if regime == 'Добавить данные':
 
 
 if regime == 'Посмотреть отчёт':
+    goods_data = st.file_uploader ('Загрузите общую таблицу')
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     df = pd.read_excel("goods_data.xlsx")
     shop_names = list(df['shop'].unique())
