@@ -12,9 +12,9 @@ st.set_page_config(
 def save_goods(new_rows, old_df):
     # если файл уже существует — читаем его
     if old_df is not None:
-        final_df = pd.concat([old_df, new_rows], ignore_index=True)
+        final_df = pd.concat([old_df, new_rows.fillna(0)], ignore_index=True)
     else:
-        final_df = new_rows
+        final_df = new_rows.fillna(0)
 
     return final_df
 
