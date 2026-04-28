@@ -53,7 +53,7 @@ if regime == 'Добавить данные':
             table = pd.read_excel (workfile)
             colnames = list(table.columns)
             table.drop(colnames[2], axis =1, inplace=True)
-            list_to_find = ['ООО "ТКМ"', 'ООО Статус Юг','накладная', 'поручение', 'Расшифровка', 'Задолженность', 'Итог', 'Документ', 'Номенклатура']
+            list_to_find = ['ООО "ТКМ"', 'ООО Статус Юг','накладная', 'поручение', 'Расшифровка', 'Задолженность', 'Итог', 'Документ', 'Номенклатура', 'Корректировка']
             table = table[~table[colnames[8]].isin(list_to_find)]
             pattern = '|'.join(map(str, list_to_find))
             table = table[~(table[colnames[1]].str.contains(pattern) == True)]
