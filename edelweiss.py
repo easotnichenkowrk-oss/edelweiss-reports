@@ -10,7 +10,6 @@ st.set_page_config(
     page_title="Движение товара",
     layout="wide")
 def save_goods(new_rows, old_df):
-    # если файл уже существует — читаем его
     if old_df is not None:
         final_df = pd.concat([old_df, new_rows.fillna(0)], ignore_index=True)
     else:
@@ -26,10 +25,8 @@ def normalize_number(x):
     if x == "":
         return None
 
-    # убираем пробелы тысяч
     x = re.sub(r"\s+", "", x)
 
-    # меняем запятую на точку
     x = x.replace(",", ".")
 
     try:
@@ -100,14 +97,12 @@ if regime == 'Добавить данные':
 
 
             result = table.copy()
-                # нормализуем числа
             for col in numeric_cols:
                     result[col] = result[col].apply(normalize_number)
 
             result['date_begin'] = date_start
             result['date_end']   = date_end
 
-                # приводим к правильному порядку колонок
             final_rows = result[colnames]
             
             filename = "goods_data.xlsx"
@@ -139,14 +134,11 @@ if regime == 'Посмотреть отчёт':
         df = pd.read_excel(goods_data)
         shop_names = list(df['shop'].unique())
         with col1:
-            # Checkbox "Все"
             all_shops = st.checkbox("Все магазины", value=True)
             
             if all_shops:
-                # Если выбрано "Все", выбираем весь список
                 selected_shop = shop_names
             else:
-                # Если "Все" не выбрано, пользователь может выбирать вручную
                 selected_shop = st.multiselect("Выберите магазины", options=shop_names)
 
 
@@ -164,7 +156,6 @@ if regime == 'Посмотреть отчёт':
 
         if st.button('Просмотр'):
             st.divider()
-            # приводим даты
             df['date_begin'] = pd.to_datetime(df['date_begin'], format="%d.%m.%Y")
             df['date_end']   = pd.to_datetime(df['date_end'], format="%d.%m.%Y")
 
@@ -178,7 +169,6 @@ if regime == 'Посмотреть отчёт':
             if filtered.empty:
                 st.warning("Нет данных за выбранный период")
             else:
-                # 🔥 фактический период
                 real_start = filtered['date_begin'].min().strftime("%d.%m.%Y")
                 real_end   = filtered['date_end'].max().strftime("%d.%m.%Y")
 
@@ -193,10 +183,8 @@ if regime == 'Посмотреть отчёт':
                     f'за {real_start} – {real_end}'
                 )
 
-                # сортируем, чтобы first / last работали корректно
                 filtered = filtered.sort_values(['good', 'date_begin'])
 
-                # группируем сначала по good и shop
                 tmp = (
                     filtered
                     .groupby(['good','shop'], as_index=False)
@@ -215,7 +203,6 @@ if regime == 'Посмотреть отчёт':
                     )
                 )
 
-                # затем объединяем по good
                 report = (
                     tmp
                     .groupby('good', as_index=False)
